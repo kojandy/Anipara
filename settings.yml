@@ -1,0 +1,37 @@
+path:
+    download: ~/Projects/Aniget/test/downloads/
+    anime: ~/Projects/Aniget/test/anime/
+    torrent: ~/Projects/Aniget/test/torrent/
+
+alert:
+    http:
+        - method: get
+          uri: http://something.com/{}
+          header:
+              authentication: alsdkfjalsdkfj
+
+source:
+    - name: ohys
+      rss: http://torrents.ohys.net/download/rss.php?dir=new
+      pattern: '[Ohys-Raws] %t - %e (%s .*).torrent'
+
+target:
+    - source: ohys
+      title: otaku ni koi wa muzukashii
+      anidb: 13293
+      subtitle:
+          anissia: 4023
+          author: 카이란
+    - source: ohys
+      title: ryuuou no oshigoto
+      anidb: 13281
+      subtitle:
+          anissia: 4021
+          author: 코코렛
+          type: smi
+    - source: ohys
+      title: takagi
+      subtitle:
+          anissia: 4081
+          author: 불량기념물
+          contains: smi
