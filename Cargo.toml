@@ -1,0 +1,10 @@
+[package]
+name = "anipara"
+version = "0.1.0"
+authors = ["Ohjun Kwon <dev@kojandy.com>"]
+edition = "2018"
+
+[dependencies]
+reqwest = "0.9.16"
+regex = "1.1.6"
+libxml = "0.2.11"
