@@ -2,75 +2,80 @@ package main
 
 import (
 	"fmt"
-    "strings"
-    "net/http"
-    "io/ioutil"
-    "regexp"
+	"io/ioutil"
+	"net/http"
+	"regexp"
+	"strings"
 
-    "github.com/antchfx/htmlquery"
+	"github.com/antchfx/htmlquery"
 )
 
-func get_service(url string) string {
-    if strings.Contains(url, "naver") {
-        return "naver"
-    } else {
-        return "unknown"
-    }
+type Blog struct {
+	service string
+	Url     string
 }
 
-func get_sub(url string) {
-	service := get_service(url)
+func GetBlog(url string) Blog {
+	if strings.Contains(url, "naver") {
+		req, _ := http.NewRequest("GET", url, nil)
+		req.Header.Add("User-Agent", "Android")
+		resp, err := (&http.Client{}).Do(req)
+		if err != nil {
+			panic(err)
+		}
+		defer resp.Body.Close()
 
-	switch service {
+		body, _ := ioutil.ReadAll(resp.Body)
+
+		reg, _ := regexp.Compile(`top\.location\.replace\('(.*)'\);`)
+		found := reg.FindSubmatch(body)
+		mUrl := strings.ReplaceAll(string(found[1]), `\/`, "/")
+
+		if strings.Contains(mUrl, "PostList.nhn") {
+			resp, err := http.Get(url)
+			if err != nil {
+				panic(err)
+			}
+			defer resp.Body.Close()
+
+			body, _ := ioutil.ReadAll(resp.Body)
+
+			reg, _ := regexp.Compile(`blogId=([a-z0-9_-]{5,20})&`)
+			found := reg.FindStringSubmatch(mUrl)
+			blogId := found[1]
+			reg, _ = regexp.Compile(fmt.Sprintf(`url_%s_([0-9]{12})`, blogId))
+			found = reg.FindStringSubmatch(string(body))
+			logNo := found[1]
+
+			mUrl = fmt.Sprintf("http://m.blog.naver.com/%s/%s", blogId, logNo)
+		}
+
+		return Blog{"naver", mUrl}
+	} else {
+		return Blog{"unknown", url}
+	}
+}
+
+func (b Blog) GetSub() []string {
+	switch b.service {
 	case "naver":
-        req, _ := http.NewRequest("GET", url, nil)
-        req.Header.Add("User-Agent", "Android")
-        resp, _ := (&http.Client{}).Do(req)
-        defer resp.Body.Close()
+		doc, _ := htmlquery.LoadURL(b.Url)
+		list := htmlquery.Find(doc, `//a[contains(@href,"blogattach")]/@href`)
 
-        body, _ := ioutil.ReadAll(resp.Body)
+		urls := []string{}
 
-        reg, _ := regexp.Compile(`top\.location\.replace\('(.*)'\);`)
-        found := reg.FindSubmatch(body)
-        m_url := strings.ReplaceAll(string(found[1]), `\/`, "/")
+		for _, n := range list {
+			urls = append(urls, htmlquery.InnerText(n))
+		}
 
-        if strings.Contains(m_url, "PostList.nhn") {
-            resp, err := http.Get(url)
-            if err != nil {
-                panic(err)
-            }
-            defer resp.Body.Close()
-
-            body, _ := ioutil.ReadAll(resp.Body)
-
-            reg, _ := regexp.Compile(`blogId=([a-z0-9_-]{5,20})&`)
-            found := reg.FindStringSubmatch(m_url)
-            blog_id := found[1]
-            reg, _ = regexp.Compile(fmt.Sprintf(`url_%s_([0-9]{12})`, blog_id))
-            found = reg.FindStringSubmatch(string(body))
-            log_no := found[1]
-
-            m_url = fmt.Sprintf("http://m.blog.naver.com/%s/%s", blog_id, log_no)
-        }
-
-        resp, _ = http.Get(m_url)
-        defer resp.Body.Close()
-
-        body, _ = ioutil.ReadAll(resp.Body)
-
-        doc, _ := htmlquery.LoadURL(m_url)
-        list := htmlquery.Find(doc, `//a[contains(@href,"blogattach")]/@href`)
-
-        for _, n := range list {
-            fmt.Println(htmlquery.InnerText(n))
-        }
-    default:
-        fmt.Println(url)
+		return urls
+	default:
+		return []string{}
 	}
 }
 
 func main() {
-    tests := []string{
+	urls := []string{
 		"http://blog.noitamina.moe/221391147667",
 		"http://blog.naver.com/cobb333/221391135993",
 		"http://blog.naver.com/PostList.nhn?blogId=harne_&categoryNo=260&from=postList",
@@ -80,7 +85,7 @@ func main() {
 		"https://blog.naver.com/qtr01122/221391146050",
 	}
 
-    for _, e := range tests {
-        get_sub(e)
-    }
+	for _, url := range urls {
+		fmt.Println(GetBlog(url).GetSub())
+	}
 }
