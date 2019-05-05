@@ -57,26 +57,43 @@ func GetBlog(url string) Blog {
 }
 
 func (b Blog) GetSub() []string {
+    downlodable := []string{}
+
 	switch b.service {
 	case "naver":
-		doc, _ := htmlquery.LoadURL(b.Url)
-		list := htmlquery.Find(doc, `//a[contains(@href,"blogattach")]/@href`)
+        doc, _ := htmlquery.LoadURL(b.Url)
+		found := htmlquery.Find(doc, `//a[contains(@href,"blogattach")]/@href`)
 
-		urls := []string{}
-
-		for _, n := range list {
-			urls = append(urls, htmlquery.InnerText(n))
-		}
-
-		return urls
+        for _, n := range found {
+            downlodable = append(downlodable, htmlquery.InnerText(n))
+        }
 	default:
-		return []string{}
+		req, _ := http.NewRequest("GET", b.Url, nil)
+		req.Header.Add("User-Agent", "Android")
+		resp, err := (&http.Client{}).Do(req)
+		if err != nil {
+			panic(err)
+		}
+		defer resp.Body.Close()
+
+        doc, _ := htmlquery.Parse(resp.Body)
+
+        links := []string{"tistory.com/attachment", "egloos.com/pds", "drive.google.com/uc"}
+
+        for _, link := range links {
+            found := htmlquery.Find(doc, fmt.Sprintf(`//a[contains(@href,"%s")]/@href`, link))
+            for _, n := range found {
+                downlodable = append(downlodable, htmlquery.InnerText(n))
+            }
+        }
 	}
+
+    return downlodable
 }
 
 func main() {
 	urls := []string{
-		"http://blog.noitamina.moe/221391147667",
+		"http://blog.noitamina.moe/221528410736",
 		"http://blog.naver.com/cobb333/221391135993",
 		"http://blog.naver.com/PostList.nhn?blogId=harne_&categoryNo=260&from=postList",
 		"http://melody88.tistory.com/631",
