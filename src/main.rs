@@ -1,6 +1,6 @@
-use libxml::parser::Parser;
-use libxml::xpath;
 use regex::Regex;
+use scraper::Html;
+use scraper::Selector;
 
 #[derive(Debug)]
 enum Blog {
@@ -57,15 +57,32 @@ impl Blog {
         match self {
             Blog::Naver(url) => {
                 let body = reqwest::get(url).unwrap().text().unwrap();
-                let document = Parser::default_html().parse_string(&body).unwrap();
-                let nodes = xpath::Context::new(&document)
-                    .unwrap()
-                    .findnodes("//a[contains(@href,\"blogattach\")]/@href", None)
-                    .unwrap();
+                let document = Html::parse_document(&body);
+                let selector = Selector::parse(r#"a[href*="smi"]"#).unwrap();
 
-                nodes.iter().map(|node| node.get_content()).collect()
+                for e in document.select(&selector) {
+                    let txt: Vec<&str> = e.text().collect();
+                    println!("{:?}", txt);
+                    println!("{}", e.value().attr("href").unwrap());
+                }
+
+                println!("{:?}", document.select(&selector).map(|e| e.value().attr("href").unwrap()).collect::<Vec<&str>>());
+
+                vec![]
             },
-            Blog::Unknown(_) => {
+            Blog::Unknown(url) => {
+                let body = reqwest::get(url).unwrap().text().unwrap();
+                let document = Html::parse_document(&body);
+                let selector = Selector::parse(r#"a[href*="zip"]"#).unwrap();
+
+                for e in document.select(&selector) {
+                    let txt: Vec<&str> = e.text().collect();
+                    println!("{:?}", txt);
+                    println!("{}", e.value().attr("href").unwrap());
+                }
+
+                println!("{:?}", document.select(&selector).map(|e| e.value().attr("href").unwrap()).collect::<Vec<&str>>());
+
                 vec![]
             },
         }
