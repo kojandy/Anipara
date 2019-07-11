@@ -8,3 +8,6 @@ edition = "2018"
 reqwest = "0.9.16"
 regex = "1.1.6"
 scraper = "0.10.0"
+serde = { version = "1.0.92", features = ["derive"] }
+serde_yaml = "0.8.9"
+rss = { version = "1.8.0", features = ["from_url"] }
