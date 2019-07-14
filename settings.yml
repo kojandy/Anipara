@@ -1,0 +1,11 @@
+source:
+  - name: ohys
+    rss: 'https://nyaa.si/?page=rss&u=ohys'
+    pattern: '[Ohys-Raws] %t - %e (%s .*).torrent'
+
+subscribe:
+  - source: ohys
+    subtitle:
+      anissia: 123
+      author: 코잔디
+    title: hitori
