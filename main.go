@@ -57,16 +57,16 @@ func GetBlog(url string) Blog {
 }
 
 func (b Blog) GetSub() []string {
-    downlodable := []string{}
+	downlodable := []string{}
 
 	switch b.service {
 	case "naver":
-        doc, _ := htmlquery.LoadURL(b.Url)
+		doc, _ := htmlquery.LoadURL(b.Url)
 		found := htmlquery.Find(doc, `//a[contains(@href,"blogattach")]/@href`)
 
-        for _, n := range found {
-            downlodable = append(downlodable, htmlquery.InnerText(n))
-        }
+		for _, n := range found {
+			downlodable = append(downlodable, htmlquery.InnerText(n))
+		}
 	default:
 		req, _ := http.NewRequest("GET", b.Url, nil)
 		req.Header.Add("User-Agent", "Android")
@@ -76,19 +76,19 @@ func (b Blog) GetSub() []string {
 		}
 		defer resp.Body.Close()
 
-        doc, _ := htmlquery.Parse(resp.Body)
+		doc, _ := htmlquery.Parse(resp.Body)
 
-        links := []string{"tistory.com/attachment", "egloos.com/pds", "drive.google.com/uc"}
+		links := []string{"tistory.com/attachment", "egloos.com/pds", "drive.google.com/uc"}
 
-        for _, link := range links {
-            found := htmlquery.Find(doc, fmt.Sprintf(`//a[contains(@href,"%s")]/@href`, link))
-            for _, n := range found {
-                downlodable = append(downlodable, htmlquery.InnerText(n))
-            }
-        }
+		for _, link := range links {
+			found := htmlquery.Find(doc, fmt.Sprintf(`//a[contains(@href,"%s")]/@href`, link))
+			for _, n := range found {
+				downlodable = append(downlodable, htmlquery.InnerText(n))
+			}
+		}
 	}
 
-    return downlodable
+	return downlodable
 }
 
 func main() {
