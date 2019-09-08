@@ -10,12 +10,10 @@ import (
 	"github.com/antchfx/htmlquery"
 )
 
-type Blog struct {
-	service string
-	Url     string
-}
 
-func GetBlog(url string) Blog {
+func GetUrl(url string) []string {
+	downlodable := []string{}
+
 	if strings.Contains(url, "naver") {
 		req, _ := http.NewRequest("GET", url, nil)
 		req.Header.Add("User-Agent", "Android")
@@ -50,25 +48,14 @@ func GetBlog(url string) Blog {
 			mUrl = fmt.Sprintf("http://m.blog.naver.com/%s/%s", blogId, logNo)
 		}
 
-		return Blog{"naver", mUrl}
-	} else {
-		return Blog{"unknown", url}
-	}
-}
+		doc, _ := htmlquery.LoadURL(mUrl)
+		foundUrl := htmlquery.Find(doc, `//a[contains(@href,"blogattach")]/@href`)
 
-func (b Blog) GetSub() []string {
-	downlodable := []string{}
-
-	switch b.service {
-	case "naver":
-		doc, _ := htmlquery.LoadURL(b.Url)
-		found := htmlquery.Find(doc, `//a[contains(@href,"blogattach")]/@href`)
-
-		for _, n := range found {
+		for _, n := range foundUrl {
 			downlodable = append(downlodable, htmlquery.InnerText(n))
 		}
-	default:
-		req, _ := http.NewRequest("GET", b.Url, nil)
+	} else {
+		req, _ := http.NewRequest("GET", url, nil)
 		req.Header.Add("User-Agent", "Android")
 		resp, err := (&http.Client{}).Do(req)
 		if err != nil {
