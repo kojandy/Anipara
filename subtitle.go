@@ -10,6 +10,15 @@ import (
 	"github.com/antchfx/htmlquery"
 )
 
+type Subtitle struct {
+	Anissia int
+	Author  string
+}
+
+func (s Subtitle) FindSubtitle() []string {
+	blogUrl := FindAnissia(s.Anissia, s.Author)
+	return GetUrl(blogUrl)
+}
 
 func GetUrl(url string) []string {
 	downlodable := []string{}
