@@ -8,7 +8,50 @@ import (
 	"strings"
 
 	"github.com/antchfx/htmlquery"
+	"gopkg.in/yaml.v2"
 )
+
+var sampleYAML = `
+directory:
+  source: adf
+  target: asdf
+
+subscribe:
+  - title: hitori
+    subtitle:
+      anissia: 123
+      author: 코잔디
+`
+
+type Setting struct {
+	Subscribe []Subscribe
+	Directory Directory
+}
+
+type Directory struct {
+	Source string
+	Target string
+}
+
+type Subtitle struct {
+	Anissia int
+	Author  string
+}
+
+type Subscribe struct {
+	Source   string
+	Subtitle Subtitle
+	Title    string
+}
+
+func ReadSetting() Setting {
+	setting := Setting{}
+	err := yaml.Unmarshal([]byte(sampleYAML), &setting)
+	if err != nil {
+		panic(err)
+	}
+	return setting
+}
 
 type Blog struct {
 	service string
@@ -92,17 +135,19 @@ func (b Blog) GetSub() []string {
 }
 
 func main() {
-	urls := []string{
-		"http://blog.noitamina.moe/221528410736",
-		"http://blog.naver.com/cobb333/221391135993",
-		"http://blog.naver.com/PostList.nhn?blogId=harne_&categoryNo=260&from=postList",
-		"http://melody88.tistory.com/631",
-		"https://mihorima.blogspot.com/2018/11/05_4.html",
-		"http://godsungin.tistory.com/200",
-		"https://blog.naver.com/qtr01122/221391146050",
-	}
+	setting := ReadSetting()
+	fmt.Println(setting)
+	// urls := []string{
+	// 	"http://blog.noitamina.moe/221528410736",
+	// 	"http://blog.naver.com/cobb333/221391135993",
+	// 	"http://blog.naver.com/PostList.nhn?blogId=harne_&categoryNo=260&from=postList",
+	// 	"http://melody88.tistory.com/631",
+	// 	"https://mihorima.blogspot.com/2018/11/05_4.html",
+	// 	"http://godsungin.tistory.com/200",
+	// 	"https://blog.naver.com/qtr01122/221391146050",
+	// }
 
-	for _, url := range urls {
-		fmt.Println(GetBlog(url).GetSub())
-	}
+	// for _, url := range urls {
+	// 	fmt.Println(GetBlog(url).GetSub())
+	// }
 }
