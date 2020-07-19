@@ -33,7 +33,7 @@ func parseFilename(filename string) (Filename, error) {
 	if err != nil {
 		return Filename{}, err
 	}
-	source := regexp.MustCompile(".*\\(([^ ]*) .*").ReplaceAllString(filename, "$1")
+	source := regexp.MustCompile(".*\\((.*?) .*").ReplaceAllString(filename, "$1")
 	return Filename{title, ep, source}, nil
 }
 
