@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -34,8 +33,7 @@ func parseFilename(filename string) (Filename, error) {
 	if err != nil {
 		return Filename{}, err
 	}
-	source := regexp.MustCompile(".*\\((.*) .*").ReplaceAllString(filename, "$1")
-	fmt.Println(title, ep)
+	source := regexp.MustCompile(".*\\(([^ ]*) .*").ReplaceAllString(filename, "$1")
 	return Filename{title, ep, source}, nil
 }
 
